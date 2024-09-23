@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional, Any
 
 from .DeviceDefinitions import Device, Parameter
@@ -39,7 +40,7 @@ class DeviceState:
             write=p["write"],
             ext_info=p.get("ext_info")
         ) for p in data["params"]]
-        return cls(errors=data["errors"], last_connected_at=data["last_connected_at"], params=params)
+        return cls(errors=data["errors"], last_connected_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"), params=params)
 
 class DeviceInstance:
     def __init__(self, definition: Device):

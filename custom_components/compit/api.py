@@ -3,7 +3,7 @@ import asyncio
 from typing import Any
 from .types.DeviceState import DeviceState
 from .types.SystemInfo import SystemInfo
-from .const import API_URL
+from .const import API_URL, REGULAR_API_URL
 import aiohttp
 import async_timeout
 
@@ -60,6 +60,26 @@ class CompitAPI:
             response = await self._api_wrapper.get(f"{API_URL}/devices/{device_id}/state", {}, self.token)
 
             return DeviceState.from_json(await self.get_result(response))
+
+        except Exception as e:
+            _LOGGER.error(e)
+            return False
+
+    async def get_full_state(self, gate_id: int, device_id: int):
+        try:
+            response = await self._api_wrapper.get(f"{REGULAR_API_URL}/gates/{gate_id}/devices/{device_id}/full_state", {}, f"Bearer {self.token}")
+
+            return DeviceState.from_json(await self.get_result(response))
+
+        except Exception as e:
+            _LOGGER.error(e)
+            return False
+
+    async def get_selected_params(self, gate_code: str, device_id: int, group: str):
+        try:
+            response = await self._api_wrapper.post(f"{REGULAR_API_URL}/gates/{gate_code}/devices/{device_id}/selected_params", {"group": group}, f"Bearer {self.token}")
+            if response.status != 200:
+                raise Exception(f"Wrong status code: {response.status} for get_selected_params (group {group}, device: {device_id})")
 
         except Exception as e:
             _LOGGER.error(e)

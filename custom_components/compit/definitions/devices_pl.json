@@ -389,7 +389,7 @@
                 "Details": null,
                 "MinValue": null,
                 "MaxValue": null,
-                "Unit": null
+                "Unit": "°C"
             },
             {
                 "ParameterCode": "__rt_akt_moc_ahu",
@@ -2615,16 +2615,16 @@
                 "Details": null,
                 "MinValue": null,
                 "MaxValue": null,
-                "Unit": null
+                "Unit": "°C"
             },
             {
                 "ParameterCode": "__rt_akt_moc_ahu",
                 "Label": "Aktualna moc ahu",
                 "ReadWrite": "R",
                 "Details": null,
-                "MinValue": null,
-                "MaxValue": null,
-                "Unit": null
+                "MinValue": 0,
+                "MaxValue": 100,
+                "Unit": "%"
             },
             {
                 "ParameterCode": "__rt_a4_t7",
@@ -4826,7 +4826,7 @@
                 "Details": null,
                 "MinValue": null,
                 "MaxValue": null,
-                "Unit": null
+                "Unit": "°C"
             },
             {
                 "ParameterCode": "__rt_akt_moc_ahu",
