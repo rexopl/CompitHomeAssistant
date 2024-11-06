@@ -57,7 +57,7 @@ async def get_device_definitions(hass: HomeAssistant, lang: str) -> DeviceDefini
     try:
         file_path = os.path.join(os.path.dirname(__file__), 'definitions', file_name)
 
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with await open(file_path, 'r', encoding='utf-8') as file:
             return DeviceDefinitions.from_json(json.load(file))
     except FileNotFoundError:
         print(f"File {file_path} not found.")

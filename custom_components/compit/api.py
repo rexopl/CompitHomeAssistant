@@ -82,7 +82,7 @@ class CompitAPI:
                 raise Exception(f"Wrong status code: {response.status} for get_selected_params (group {group}, device: {device_id})")
 
         except Exception as e:
-            _LOGGER.error(e)
+            _LOGGER.error(e, exc_info=True)
             return False
 
     async def update_device_parameter(self, device_id: int, parameter: str, value: str | int):
