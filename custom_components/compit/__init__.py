@@ -8,9 +8,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .types.DeviceDefinitions import DeviceDefinitions
-from .coordinator import CompitDataUpdateCoordinator
+from .coordinator import CompitDataUpdateCoordinator, CompitDataUpdateCoordinatorPush
 from .const import DOMAIN, PLATFORMS
-from .api import CompitAPI
+from .api import CompitFullAPI
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # Extract and log authentication attempt
         email = entry.data["email"]
         _LOGGER.debug("Authenticating with email: %s", email)
-        api = CompitAPI(email, entry.data["password"], session)
+        api = CompitFullAPI(email, entry.data["password"], session)
 
         # Log authentication and device definition loading
         _LOGGER.info("Authenticating with Compit API")
@@ -44,7 +44,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # Set up coordinator
         _LOGGER.debug("Initializing data coordinator")
 
-        coordinator = CompitDataUpdateCoordinator(
+        coordinator = CompitDataUpdateCoordinatorPush(
             hass, authenticated_gates.gates, api, device_definitions
         )
         await coordinator.async_config_entry_first_refresh()

@@ -1,15 +1,95 @@
 import logging
 import asyncio
 from typing import Any
+
 from .types.DeviceState import DeviceState
 from .types.SystemInfo import SystemInfo
-from .const import API_URL
+from .const import API_URL, FULL_API_URL
 import aiohttp
 import async_timeout
+from bs4 import BeautifulSoup
 
 TIMEOUT = 10
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 HEADERS = {"Content-type": "application/json; charset=UTF-8"}
+
+
+class CompitFullAPI:
+    def __init__(self, email, password, session: aiohttp.ClientSession):
+        self.email = email
+        self.password = password
+        self.token = None
+        self._api_wrapper = ApiWrapper(session)
+        self._session = session
+        self.ws: aiohttp.WS | None = None
+
+    async def get_result(
+        self, response: aiohttp.ClientResponse, ignore_response_code: bool = False
+    ) -> Any:
+        if response.ok or ignore_response_code:
+            return await response.json()
+
+        raise Exception(f"Server returned: {response.status} {response.reason}")
+
+    async def authenticate(self):
+        try:
+            response1 = await self._api_wrapper.get(f"{FULL_API_URL}/pl/login")
+            s = BeautifulSoup(await response1.text(), features="html.parser")
+            _csrf_token = s.find('input', {'name': '_csrf_token'}).attrs.get("value")
+            response = await self._api_wrapper.post(
+                f"{FULL_API_URL}/pl/login",
+                {
+                    "email": self.email,
+                    "password": self.password,
+                    "_csrf_token": _csrf_token,
+                },
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 OPR/119.0.0.0",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+            )
+
+            if response.status == 200:
+                s = BeautifulSoup(await response.text(), features="html.parser")
+                self.token = s.find('meta', {'id': 'token'}).attrs.get("content")
+
+                # load system info
+                response = await self._api_wrapper.get(f"{FULL_API_URL}/api/current_user", headers={
+                    "Authorization": f"Bearer {self.token}"
+                })
+                result = await self.get_result(response)
+                return SystemInfo.from_json(result)
+            else:
+                raise Exception("Login response code: %s" % response.status)
+        except Exception as e:
+            _LOGGER.error(e)
+            return False
+
+    async def get_wentilation_group_id(self, gate_id: int) -> int:
+        try:
+            response = await self._api_wrapper.get(f"{FULL_API_URL}/api/gates/{gate_id}/device_definitions/list")
+            result = await self.get_result(response)
+            for group in result[0].get("params_groups", []):
+                if "Wentylacja" in group.get("label"):
+                    return group.get("id")
+        except Exception as e:
+            _LOGGER.error(e)
+            return False
+
+    async def request_parameters(self, gate_code: str, device_id: int, group_id: int):
+        try:
+            response = await self._api_wrapper.post(
+                f"{FULL_API_URL}/api/gates/{gate_code}/devices/{device_id}/selected_params",
+                data={"group_id": group_id},
+            )
+            await self.get_result(response)
+        except Exception as e:
+            _LOGGER.error(e)
+            return False
+
+    async def connect_websocket(self):
+        websocket_url = f"wss://inext.compit.pl/socket/websocket?token={self.token}&vsn=2.0.0"
+        self.ws = await self._session.ws_connect(websocket_url)
 
 
 class CompitAPI:
