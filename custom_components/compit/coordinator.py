@@ -40,8 +40,8 @@ class CompitDataUpdateCoordinatorPush(DataUpdateCoordinator[dict[Any, DeviceInst
         self._websocket_task = None
         self._heartbeat_task = None
         self._heartbeat_no = 8
-        self._vent_group_requested: None | datetime = None
-        self.vent_group_id = None
+        self._params_refresh_requested: None | datetime = None
+        self.groups_to_refresh = None
 
         super().__init__(hass, _LOGGER, name=DOMAIN)
 
@@ -68,12 +68,7 @@ class CompitDataUpdateCoordinatorPush(DataUpdateCoordinator[dict[Any, DeviceInst
                 )
             )
 
-            self.vent_group_id = await self.api.get_wentilation_group_id(
-                gate_id=self.gates[0].id,
-                device_class=self.gates[0].devices[0].class_,
-                device_type=self.gates[0].devices[0].type,
-                device_version=self.gates[0].devices[0].version,
-            )
+
             # Listen for messages
             self._websocket_task = self.hass.async_create_background_task(
                 self._listen_for_messages(),
@@ -133,7 +128,7 @@ class CompitDataUpdateCoordinatorPush(DataUpdateCoordinator[dict[Any, DeviceInst
             update_data = message[4]
 
             if message[3] == "selected_params_update":
-                self._vent_group_requested = None
+                self._params_refresh_requested = None
 
             for gate in self.gates:
                 if gate.id != update_data.get("gate_id"):
@@ -195,19 +190,18 @@ class CompitDataUpdateCoordinatorPush(DataUpdateCoordinator[dict[Any, DeviceInst
         if self.websocket:
             try:
                 if (
-                    not self._vent_group_requested
-                    or datetime.now() - self._vent_group_requested
+                    not self._params_refresh_requested
+                    or datetime.now() - self._params_refresh_requested
                     > timedelta(minutes=5)
                 ):
                     _LOGGER.info(
-                        f"Requesting parameters for group {self.vent_group_id}..."
+                        f"Requesting parameters for group {self.groups_to_refresh}..."
                     )
-                    await self.api.request_parameters(
+                    await self.api.request_full(
                         self.gates[0].code,
                         self.gates[0].devices[0].id,
-                        self.vent_group_id,
                     )
-                    self._vent_group_requested = datetime.now()
+                    self._params_refresh_requested = datetime.now()
 
             except ConnectionResetError:
                 self._reconnect()

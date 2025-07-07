@@ -1245,7 +1245,7 @@
             },
             {
                 "ParameterCode": "__a4wentylacjawywobrbieg3",
-                "Label": "Wentylacja wywiew obroty bieg 3",
+                "Label": "Wentylacja wywiew obroty biegu 3",
                 "ReadWrite": "R/W",
                 "Details": null,
                 "MinValue": 0,
@@ -3471,7 +3471,7 @@
             },
             {
                 "ParameterCode": "__a4wentylacjawywobrbieg3",
-                "Label": "Wentylacja wywiew obroty bieg 3",
+                "Label": "Wentylacja wywiew obroty biegu 3",
                 "ReadWrite": "R/W",
                 "Details": null,
                 "MinValue": 0,
@@ -5664,7 +5664,7 @@
             },
             {
                 "ParameterCode": "__a4wentylacjawywobrbieg3",
-                "Label": "Wentylacja wywiew obroty bieg 3",
+                "Label": "Wentylacja wywiew obroty biegu 3",
                 "ReadWrite": "R/W",
                 "Details": null,
                 "MinValue": 0,

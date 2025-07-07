@@ -111,9 +111,10 @@ class CompitFullAPI:
             _LOGGER.error(e, exc_info=True)
             return None
 
-    async def get_wentilation_group_id(
+    async def get_groups_to_refresh(
         self, gate_id: int, device_class: int, device_type: int, device_version: int
     ) -> int:
+        groups_to_refresh = []
         try:
             result = await self.get_list(
                 gate_id=gate_id,
@@ -123,10 +124,11 @@ class CompitFullAPI:
             )
             for group in result.get("data")[0].get("params_groups", []):
                 if "Wentylacja" in group.get("label"):
-                    return group.get("id")
+                    groups_to_refresh.append(group.get("id"))
         except Exception as e:
             _LOGGER.error(e, exc_info=True)
-            return 0
+
+        return groups_to_refresh
 
     async def request_parameters(self, gate_code: str, device_id: int, group_id: int):
         try:
